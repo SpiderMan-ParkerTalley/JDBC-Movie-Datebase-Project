@@ -58,7 +58,11 @@ public class MovieDriver {
 	} // end dbQuery method
 
 	/**
-	 * To Be Done
+	 * This method establishes a link to the SQL database called omdb and requests the native name,
+	 * english name, and the year a movie was made from the user. Then, the method makes sure the 
+	 * year entered is less than 2021 and greater than zero. Then, the method creates a string that represents
+	 * a SQL statement that inserts the information requested into a new row in the movies table.
+	 * Finally, the method prints a statement saying whether the movie was entered succesfully or not.
 	 */
 	public static void dbInsert() {
 		Connection db_connection = null;
