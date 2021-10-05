@@ -64,7 +64,7 @@ public class MovieDriver {
 	 * a SQL statement that inserts the information requested into a new row in the movies table.
 	 * Finally, the method prints a statement saying whether the movie was entered succesfully or not.
 	 */
-	public static void dbInsert() {
+	public static void dbInsert(String native_name, String english_name, int year_made) { // add arguments for native_name, english_name, year_made
 		Connection db_connection = null;
 		try {
 
@@ -80,16 +80,7 @@ public class MovieDriver {
 
 			// Step 3: Execute SQL query
 			// Set the query string you want to run on the database
-			// If this query is not running in PhpMyAdmin, then it will not run here
-
-			// Take input from the user
-			// Grab information about movie.
-			System.out.print("Enter the movie's native name: ");
-			String native_name = scanner.nextLine();
-			System.out.print("Enter the movie's english name: ");
-			String english_name = scanner.nextLine();
-			System.out.print("Enter the year the movie was made: ");
-			int year_made = scanner.nextInt();
+			// If this query is not running in PhpMyAdmin, then it will not run her
 			
 			// Fail-over; check if the year entered is valid.
 			while (year_made < 0 || year_made > 2021) {
@@ -126,7 +117,7 @@ public class MovieDriver {
 	 * following row; followed by what they would like to update it with.
 	 * Lastly, a line will be printed whether the row was sucessfully updated.
 	 */
-	public static void dbUpdate() {
+	public static void dbUpdate(int movie_id, int determination, String update_value) {
 		Connection db_connection = null;
 		try {
 
@@ -144,24 +135,17 @@ public class MovieDriver {
 			// Set the query string you want to run on the database
 			// If this query is not running in PhpMyAdmin, then it will not run here
 			// Collect the movie id of the movie that will be updated.
-			System.out.print("Enter the Movie ID: ");
-			int movieID = scanner.nextInt();
 
 			// Determine what the user this wants to update.
-			System.out.print("Choose update option: \n 1: native_name \n" +
-				 " 2: english_name \n 3: year_made \nOption: ");
-			int determination = scanner.nextInt();
-			scanner.nextLine();
+			
 			
 			// Update native_name; option 1
 			if(determination == 1) {
 				// Determine what value the user would like to replace with.
-				System.out.print("Update value: ");
-				String update_value = scanner.nextLine();
 
 				// Setting the quary string.
 				String sql_query_str = "UPDATE movies SET native_name = \'" + 
-					update_value + "\' WHERE movie_id = \'" + movieID + "\';";
+					update_value + "\' WHERE movie_id = \'" + movie_id + "\';";
 				int update_result_set = statement_object.executeUpdate(sql_query_str);
 				
 				// Determines if the row/object was successfully updated.
@@ -175,12 +159,10 @@ public class MovieDriver {
 			// Update english_name; option 2
 			else if(determination == 2) {
 				// Determine what value the user would like to replace with.
-				System.out.print("Update value: ");
-				String update_value = scanner.nextLine();
 
 				// Setting the quary string.
 				String sql_query_str = "UPDATE movies SET english_name = \'" + 
-					update_value + "\' WHERE movie_id = \'" + movieID + "\';";
+					update_value + "\' WHERE movie_id = \'" + movie_id + "\';";
 				int update_result_set = statement_object.executeUpdate(sql_query_str);
 				
 				// Determines if the row/object was successfully updated.
@@ -193,13 +175,11 @@ public class MovieDriver {
 			}
 			// Update year_made; option 3
 			else if(determination == 3) {
-				// Determine what value the user would like to replace with.
-				System.out.print("Update value: ");
-				int update_value = scanner.nextInt();
+				int int_update_value = Integer.parseInt(update_value);
 
 				// Setting the quary string.
 				String sql_query_str = "UPDATE movies SET year_made = \'" + 
-					update_value + "\' WHERE movie_id = \'" + movieID + "\';";
+				int_update_value + "\' WHERE movie_id = \'" + movie_id + "\';";
 				int update_result_set = statement_object.executeUpdate(sql_query_str);
 				
 				// Determines if the row/object was sucessfully updated.
@@ -229,7 +209,7 @@ public class MovieDriver {
 	 * Including: movie_id.
 	 * The method will then try and delete the movie the the movie_id supplied.
 	 */
-	public static void dbDelete() {
+	public static void dbDelete(int movie_id) {
 		Connection db_connection = null;
 		try {
 
@@ -244,11 +224,6 @@ public class MovieDriver {
 			Statement statement_object = db_connection.createStatement();
 
 			// Step 3: Execute SQL query
-			// Set the query string you want to run on the database
-			// If this query is not running in PhpMyAdmin, then it will not run here
-			// Collect information from user about the movie they would like to update.
-			System.out.print("Enter the movie_id: ");
-			String movie_id = scanner.nextLine();
 
 			// Setting the quary string.
 			String sql_query_str = "DELETE FROM movies WHERE movie_id = " + movie_id;
@@ -268,19 +243,44 @@ public class MovieDriver {
 		} // end catch
 	}
 	public static void main(String[] args) {
+		/*
+		// Insert Method
+		// Determine what the user wants the attributes to be.
+		System.out.print("Enter the movie's native name: ");
+		String native_name = scanner.nextLine();
+		System.out.print("Enter the movie's english name: ");
+		String english_name = scanner.nextLine();
+		System.out.print("Enter the year the movie was made: ");
+		int year_made = scanner.nextInt();
+		// Command.
+		MovieDriver.dbInsert(native_name, english_name, year_made);
+		*/
+
+		/*
+		// Update method.
+		// Determine what movie the user wants to update.
+		System.out.print("Enter the Movie ID: ");
+		int movie_id = scanner.nextInt();
+		// Determine what the user wants to update.
+		System.out.print("Choose update option: \n 1: native_name \n" +
+			" 2: english_name \n 3: year_made \nOption: ");
+		int determination = scanner.nextInt();
+		scanner.nextLine();
+		// Grab update_value.
+		System.out.print("Update value: ");
+		String update_value = scanner.nextLine();
+		// Command.
+		MovieDriver.dbUpdate(movie_id, determination, update_value);
+		*/
+
+	
+		// Set the query string you want to run on the database
+		// If this query is not running in PhpMyAdmin, then it will not run here
+		// Collect information from user about the movie they would like to update.
+		System.out.print("Enter the movie_id: ");
+		int movie_id = scanner.nextInt();
+		// Command.
+		MovieDriver.dbDelete(movie_id);
 		
-
-		// Take the inputs from the user
-		// native_name, english_name and year_made
-		// MovieDriver.dbInsert();
-		// MovieDriver.dbSelect();
-
-		// take the movie id. THen should we update native_name? english_name? or
-		// year_made
-		MovieDriver.dbUpdate();
-
-		// take the movie id.
-		// MovieDriver.dbDelete();
-
 	}
 } // end class
