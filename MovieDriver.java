@@ -224,7 +224,10 @@ public class MovieDriver {
 	}
 
 	/**
-	 * To Be Done
+	 * Used to delete an existing row within the database.
+	 * The user will be asked in teh console for idenifying information;
+	 * Including: movie_id.
+	 * The method will then try and delete the movie the the movie_id supplied.
 	 */
 	public static void dbDelete() {
 		Connection db_connection = null;
