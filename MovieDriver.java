@@ -265,90 +265,85 @@ public class MovieDriver {
 			if(result_set.next()) {
 				int number_of_movies = result_set.getInt("movie_id");
 			
-			// Loop through every possible movie.
-			for(int id = 1; id <= number_of_movies; id++) {
-				// Determine if a movie has 'id' (from for loop) is used for a movie_id.
-				String sql_query_check = "SELECT COUNT(1) FROM movies WHERE movie_id = \'" + id + "\';";
-				ResultSet check_result = statement_object.executeQuery(sql_query_check);
-				check_result.next();
-				int result_option = check_result.getInt("COUNT(1)");
+				// Loop through every possible movie.
+				for(int id = 1; id <= number_of_movies; id++) {
+					// Determine if a movie has 'id' (from for loop) is used for a movie_id.
+					String sql_query_check = "SELECT COUNT(1) FROM movies WHERE movie_id = \'" + id + "\';";
+					ResultSet check_result = statement_object.executeQuery(sql_query_check);
+					check_result.next();
+					int result_option = check_result.getInt("COUNT(1)");
 				
-				// No movie has 'id' (from for loop), skip to the next 'id'.
-				if(result_option == 0) {
-					continue;
-				}
-				
-				// A movie has 'id' (from for loop).
-				else {
-					String sql_query = "SELECT * FROM movies WHERE movie_id = \'" + id + "\';";
-					ResultSet result_current_movie_row = statement_object.executeQuery(sql_query);
-					result_current_movie_row.next();
-					String native_name = result_current_movie_row.getString("native_name");
-					int movie_id = result_current_movie_row.getInt("movie_id");
-
-					// Determine the length of the native name using API.
-					int native_name_len = API.getLength(native_name);
-				
-					// Determine if a record already exist in movies_numbers
-					String check_movies_numbers = "SELECT COUNT(1) FROM movie_numbers WHERE movie_id = \'" + movie_id + "\';";
-					ResultSet result_movies_numbers = statement_object.executeQuery(check_movies_numbers);
-					// Stores value of whether the movie_id exist in movie_numbers.
-					result_movies_numbers.next();
-					int result_int_movie_number = result_movies_numbers.getInt("COUNT(1)");
-					
-					// The movie_id does NOT exist in movie_numbers.
-					if(result_int_movie_number == 0) {
-						// Inserts the new row.
-						String insert_statement = "INSERT INTO `movie_numbers` (`movie_id`, `running_time`, `length`, `strength`, `weight`, `budget`, `box_office`) VALUES (\'"
-							+ id + "\', NULL, \'" + native_name_len + "\', NULL, NULL, NULL, NULL);";
-						int update_result_set = statement_object.executeUpdate(insert_statement);
-			
-						// Determines if the row/object was successfully updated.
-						if(update_result_set != 0 ) {
-						System.out.println("Success: The movie_id " + id + " was successfully ADDED to movie_numbers.");
-							}
-						else {
-							System.out.println("Failure: The movie was not added.");
-						}
+					// No movie has 'id' (from for loop), skip to the next 'id'.
+					if(result_option == 0) {
+						continue;
 					}
-					
-					// The movie_id exist in movie_numbers.
-					else if (result_int_movie_number == 1) {
-						String check_if_length_valid = "SELECT length FROM movie_numbers WHERE movie_id = \'" + movie_id + "\';";
-						ResultSet result_if_length_valid = statement_object.executeQuery(check_if_length_valid);
+				
+					// A movie has 'id' (from for loop).
+					else {
+						String sql_query = "SELECT * FROM movies WHERE movie_id = \'" + id + "\';";
+						ResultSet result_current_movie_row = statement_object.executeQuery(sql_query);
+						result_current_movie_row.next();
+						String native_name = result_current_movie_row.getString("native_name");
+						int movie_id = result_current_movie_row.getInt("movie_id");
+
+						// Determine the length of the native name using API.
+						int native_name_len = API.getLength(native_name);
+				
+						// Determine if a record already exist in movies_numbers
+						String check_movies_numbers = "SELECT COUNT(1) FROM movie_numbers WHERE movie_id = \'" + movie_id + "\';";
+						ResultSet result_movies_numbers = statement_object.executeQuery(check_movies_numbers);
 						// Stores value of whether the movie_id exist in movie_numbers.
 						result_movies_numbers.next();
-						int result_from_length_valid = result_if_length_valid.getInt("length");
-						if(result_from_length_valid == native_name_len) {
-							continue;
-						}
-						else {
-							// Updates the value.
-							String sql_query_update = "UPDATE movie_numbers SET length = \'" + 
-							native_name_len + "\' WHERE movie_id = \'" + movie_id + "\';";
-							int update_result_set = statement_object.executeUpdate(sql_query_update);
+						int result_int_movie_number = result_movies_numbers.getInt("COUNT(1)");
+					
+						// The movie_id does NOT exist in movie_numbers.
+						if(result_int_movie_number == 0) {
+							// Inserts the new row.
+							String insert_statement = "INSERT INTO `movie_numbers` (`movie_id`, `running_time`, `length`, `strength`, `weight`, `budget`, `box_office`) VALUES (\'"
+								+ id + "\', NULL, \'" + native_name_len + "\', NULL, NULL, NULL, NULL);";
+							int update_result_set = statement_object.executeUpdate(insert_statement);
+			
 							// Determines if the row/object was successfully updated.
 							if(update_result_set != 0 ) {
-								System.out.println("Success: The movie_id " + id + " was successfully UPDATED to movie_numbers.");
-							}
+							System.out.println("Success: The movie_id " + id + " was successfully ADDED to movie_numbers.");
+								}
 							else {
 								System.out.println("Failure: The movie was not added.");
 							}
 						}
+					
+						// The movie_id exist in movie_numbers.
+						else if (result_int_movie_number == 1) {
+							String check_if_length_valid = "SELECT length FROM movie_numbers WHERE movie_id = \'" + movie_id + "\';";
+							ResultSet result_if_length_valid = statement_object.executeQuery(check_if_length_valid);
+							// Stores value of whether the movie_id exist in movie_numbers.
+							result_movies_numbers.next();
+							int result_from_length_valid = result_if_length_valid.getInt("length");
+							if(result_from_length_valid == native_name_len) {
+								continue;
+							}
+							else {
+								// Updates the value.
+								String sql_query_update = "UPDATE movie_numbers SET length = \'" + 
+								native_name_len + "\' WHERE movie_id = \'" + movie_id + "\';";
+								int update_result_set = statement_object.executeUpdate(sql_query_update);
+								// Determines if the row/object was successfully updated.
+								if(update_result_set != 0 ) {
+									System.out.println("Success: The movie_id " + id + " was successfully UPDATED to movie_numbers.");
+								}
+								else {
+									System.out.println("Failure: The movie was not added.");
+								}
+							}
+						}
 					}
 				}
-			}
-			
-
-
-			} // end while
-
+			} 
 		} // end try
 
 		catch (Exception ex) {
-			ex.printStackTrace();
+				ex.printStackTrace();
 		} // end catch
-
 	}
 	
 	public static void main(String[] args) {
