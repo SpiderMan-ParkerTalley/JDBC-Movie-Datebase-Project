@@ -317,7 +317,7 @@ public class MovieDriver {
 							String check_if_length_valid = "SELECT length FROM movie_numbers WHERE movie_id = \'" + movie_id + "\';";
 							ResultSet result_if_length_valid = statement_object.executeQuery(check_if_length_valid);
 							// Stores value of whether the movie_id exist in movie_numbers.
-							result_movies_numbers.next();
+							result_if_length_valid.next();
 							int result_from_length_valid = result_if_length_valid.getInt("length");
 							if(result_from_length_valid == native_name_len) {
 								continue;
