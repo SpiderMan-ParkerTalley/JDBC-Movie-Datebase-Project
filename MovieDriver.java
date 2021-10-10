@@ -737,9 +737,9 @@ public class MovieDriver {
 				ex.printStackTrace();
 		} // end catch
 		
-		
-			public static String[] getLetterBaseMovies(String input) {
+	public static ArrayList<String> getLetterBaseMovies(String input) {
 		Connection db_connection = null;
+		ArrayList<String> match_movies = new ArrayList<String>();
 		try {
 
 			// Step 1: Get the connection object for the database
@@ -756,11 +756,36 @@ public class MovieDriver {
 
 			// Setting the quary string.
 			int movieLength = API.getLength(input);
+			String[] original = API.getLogicalChars(input);
 			String sql_query_str = "SELECT movies.native_name FROM movies, movie_numbers WHERE movie_numbers.length = " +
 			movieLength + " AND " + "movie_numbers.movie_id = movies.movie_id;";
 			ResultSet result_set = statement_object.executeQuery(sql_query_str);
 			
+			while(result_set.next()) {
+				int counter = 0;
+				String[] compare = API.getLogicalChars(result_set.getString("native_name"));
+				if(input.equals(result_set.getString("native_name")) == false) {
+					Arrays.sort(original);
+					Arrays.sort(compare);
+					for(int i=0; i<compare.length; i++) {
+						if(compare[i].equals(original[i])) {
+							counter += 1;
+						}
+					}
+					if(counter == movieLength) {
+						match_movies.add(result_set.getString("native_name"));
+						System.out.println("Movie match found!");
+						}
+					}
+				}
 		}
+			
+		catch (Exception ex) {
+			ex.printStackTrace();
+		 // end catch
+		}
+		return match_movies;
+	}
 			
 		catch (Exception ex) {
 			ex.printStackTrace();
