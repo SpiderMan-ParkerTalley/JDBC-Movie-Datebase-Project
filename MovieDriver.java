@@ -344,7 +344,38 @@ public class MovieDriver {
 		catch (Exception ex) {
 				ex.printStackTrace();
 		} // end catch
+		
+		
+			public static String[] getLetterBaseMovies(String input) {
+		Connection db_connection = null;
+		try {
+
+			// Step 1: Get the connection object for the database
+			String url = "jdbc:mysql://localhost/omdb";
+			String user = "root";
+			String password = "";
+			db_connection = DriverManager.getConnection(url, user, password);
+			System.out.println("Success: Connection established");
+
+			// Step 2: Create a statement object
+			Statement statement_object = db_connection.createStatement();
+
+			// Step 3: Execute SQL query
+
+			// Setting the quary string.
+			int movieLength = API.getLength(input);
+			String sql_query_str = "SELECT movies.native_name FROM movies, movie_numbers WHERE movie_numbers.length = " +
+			movieLength + " AND " + "movie_numbers.movie_id = movies.movie_id;";
+			ResultSet result_set = statement_object.executeQuery(sql_query_str);
+			
+		}
+			
+		catch (Exception ex) {
+			ex.printStackTrace();
+		 // end catch
+		}
 	}
+	
 	
 	public static void main(String[] args) {
 		/*
