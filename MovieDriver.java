@@ -2,13 +2,14 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.Statement;
+import java.util.Scanner; // Added for user input
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Scanner; // Added for user input // Added for user input
 
 
 public class MovieDriver {
 	static Scanner scanner = new Scanner(System.in);
+
 	/**
 	 * Selection infromation from mysql server
 	 */
@@ -36,7 +37,7 @@ public class MovieDriver {
 			// Step 4: Process the result set
 			// There are many methods for processing the ResultSet
 			// See https://docs.oracle.com/javase/7/docs/api/java/sql/ResultSet.html
-			while (result_set.next()) {
+			while(result_set.next()) {
 				int id = result_set.getInt("movie_id"); 
 				String native_name = result_set.getString("native_name");
 				String english_name = result_set.getString("english_name");
@@ -57,6 +58,7 @@ public class MovieDriver {
 		} // end catch
 
 	} // end dbQuery method
+
 	/**
 	 * This method establishes a link to the SQL database called omdb and requests the native name,
 	 * english name, and the year a movie was made from the user. Then, the method makes sure the 
@@ -201,7 +203,7 @@ public class MovieDriver {
 		catch (Exception ex) {
 			ex.printStackTrace();
 		} // end catch
-	}
+	} // end dbUpdate method
 
 	/**
 	 * Used to delete an existing row within the database.
@@ -230,7 +232,7 @@ public class MovieDriver {
 			int update_result_set = statement_object.executeUpdate(sql_query_str);
 
 			// Determines if the row/object was successfully updated.
-			if(update_result_set != 0 ) {
+			if(update_result_set != 0) {
 				System.out.println("The line was successfully deleted.");
 			}
 			else {
@@ -241,8 +243,8 @@ public class MovieDriver {
 		catch (Exception ex) {
 			ex.printStackTrace();
 		} // end catch
-	}
-	
+	} // end dbDelete method
+
 	public static void updateLength() {
 		Connection db_connection = null;
 		try {
@@ -260,10 +262,10 @@ public class MovieDriver {
 			// Step 3: Execute SQL query
 			// Set the query string you want to run on the database
 			// If this query is not running in PhpMyAdmin, then it will not run here
-			String sql_query_str = "SELECT movie_id FROM movies WHERE movie_id = (SELECT MAX(movie_id) FROM movies)";
+			String sql_query_str = "SELECT count(*) FROM movies";
 			ResultSet result_set = statement_object.executeQuery(sql_query_str);
 			if(result_set.next()) {
-				int number_of_movies = result_set.getInt("movie_id");
+			int number_of_movies = result_set.getInt("COUNT(*)");
 			
 				// Loop through every possible movie.
 				for(int id = 1; id <= number_of_movies; id++) {
@@ -314,26 +316,17 @@ public class MovieDriver {
 					
 						// The movie_id exist in movie_numbers.
 						else if (result_int_movie_number == 1) {
-							String check_if_length_valid = "SELECT length FROM movie_numbers WHERE movie_id = \'" + movie_id + "\';";
-							ResultSet result_if_length_valid = statement_object.executeQuery(check_if_length_valid);
-							// Stores value of whether the movie_id exist in movie_numbers.
-							result_if_length_valid.next();
-							int result_from_length_valid = result_if_length_valid.getInt("length");
-							if(result_from_length_valid == native_name_len) {
-								continue;
+							// Updates the value.
+							String sql_query_update = "UPDATE movie_numbers SET length = \'" + 
+							native_name_len + "\' WHERE movie_id = \'" + movie_id + "\';";
+							int update_result_set = statement_object.executeUpdate(sql_query_update);
+							
+							// Determines if the row/object was successfully updated.
+							if(update_result_set != 0 ) {
+								System.out.println("Success: The movie_id " + id + " was successfully UPDATED to movie_numbers.");
 							}
 							else {
-								// Updates the value.
-								String sql_query_update = "UPDATE movie_numbers SET length = \'" + 
-								native_name_len + "\' WHERE movie_id = \'" + movie_id + "\';";
-								int update_result_set = statement_object.executeUpdate(sql_query_update);
-								// Determines if the row/object was successfully updated.
-								if(update_result_set != 0 ) {
-									System.out.println("Success: The movie_id " + id + " was successfully UPDATED to movie_numbers.");
-								}
-								else {
-									System.out.println("Failure: The movie was not added.");
-								}
+								System.out.println("Failure: The movie was not added.");
 							}
 						}
 					}
@@ -344,9 +337,8 @@ public class MovieDriver {
 		catch (Exception ex) {
 				ex.printStackTrace();
 		} // end catch
-		
-	}
-	
+	} // end updateLength method
+
 	public static ArrayList<String> getLetterBaseMovies(String input) {
 		Connection db_connection = null;
 		ArrayList<String> match_movies = new ArrayList<String>();
@@ -371,17 +363,26 @@ public class MovieDriver {
 			movieLength + " AND " + "movie_numbers.movie_id = movies.movie_id;";
 			ResultSet result_set = statement_object.executeQuery(sql_query_str);
 			
+			// Loop through
 			while(result_set.next()) {
 				int counter = 0;
+				
+				// Grabing native name and storing characters in String[] compare array.
 				String[] compare = API.getLogicalChars(result_set.getString("native_name"));
+				
+				// If they match, run statement in if block.
 				if(input.equals(result_set.getString("native_name")) == false) {
+					// Sorting arrays that contain the letter(s) of the current movie.
 					Arrays.sort(original);
 					Arrays.sort(compare);
-					for(int i=0; i<compare.length; i++) {
+					// Check each letter if they match.
+					for(int i = 0; i < compare.length; i++) {
 						if(compare[i].equals(original[i])) {
 							counter += 1;
 						}
 					}
+					
+					// Adds the movie to the match_movies array if they matched during the previous for loop.
 					if(counter == movieLength) {
 						match_movies.add(result_set.getString("native_name"));
 						System.out.println("Movie match found!");
@@ -392,11 +393,12 @@ public class MovieDriver {
 			
 		catch (Exception ex) {
 			ex.printStackTrace();
-		 // end catch
-		}
+		 
+		} // end catch
+		// returns an array containing all matching* movies
 		return match_movies;
+	} // getLetterBaseMovies method
 	
-	}
 	public static void main(String[] args) {
 		/*
 		// Insert Method
@@ -428,7 +430,7 @@ public class MovieDriver {
 		MovieDriver.dbUpdate(movie_id, determination, update_value);
 		*/
 
-	
+		/*
 		// Set the query string you want to run on the database
 		// If this query is not running in PhpMyAdmin, then it will not run here
 		// Collect information from user about the movie they would like to update.
@@ -436,6 +438,10 @@ public class MovieDriver {
 		int movie_id = scanner.nextInt();
 		// Command.
 		MovieDriver.dbDelete(movie_id);
-		
+		*/
+
+		// MovieDriver.updateLength();
+		System.out.println(MovieDriver.getLetterBaseMovies("కనకతార"));
+
 	}
 } // end class
