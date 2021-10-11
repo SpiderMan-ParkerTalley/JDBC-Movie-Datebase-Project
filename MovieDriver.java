@@ -363,26 +363,27 @@ public class MovieDriver {
 			movieLength + " AND " + "movie_numbers.movie_id = movies.movie_id;";
 			ResultSet result_set = statement_object.executeQuery(sql_query_str);
 			
-			// Loop through
+			// Loop through query results
 			while(result_set.next()) {
 				int counter = 0;
 				
-				// Grabing native name and storing characters in String[] compare array.
+				//Grabbing current loop index's native name and splitting it using API to get its logical chars as an array.
 				String[] compare = API.getLogicalChars(result_set.getString("native_name"));
 				
-				// If they match, run statement in if block.
+				//If the word is not equal to the initial input that we are comparing to, then we enter if condition
 				if(input.equals(result_set.getString("native_name")) == false) {
-					// Sorting arrays that contain the letter(s) of the current movie.
+					//Sorting both the input chars and compared native name chars to see if they are anagrams of each other
 					Arrays.sort(original);
 					Arrays.sort(compare);
-					// Check each letter if they match.
+					//Check each char index by index to see if they match
 					for(int i = 0; i < compare.length; i++) {
+						//if they match at each index, increment counter by 1
 						if(compare[i].equals(original[i])) {
 							counter += 1;
 						}
 					}
 					
-					// Adds the movie to the match_movies array if they matched during the previous for loop.
+					//If the counter is equal to the length of the original word (input), then we will add compared movie native name to return arraylist
 					if(counter == movieLength) {
 						match_movies.add(result_set.getString("native_name"));
 						System.out.println("Movie match found!");
