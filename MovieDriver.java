@@ -262,10 +262,10 @@ public class MovieDriver {
 			// Step 3: Execute SQL query
 			// Set the query string you want to run on the database
 			// If this query is not running in PhpMyAdmin, then it will not run here
-			String sql_query_str = "SELECT count(*) FROM movies";
+			String sql_query_str = "SELECT MAX(movie_id) FROM movies";
 			ResultSet result_set = statement_object.executeQuery(sql_query_str);
 			if(result_set.next()) {
-			int number_of_movies = result_set.getInt("COUNT(*)");
+			int number_of_movies = result_set.getInt("MAX(movie_id)");
 			
 				// Loop through every possible movie.
 				for(int id = 1; id <= number_of_movies; id++) {
@@ -289,6 +289,7 @@ public class MovieDriver {
 						int movie_id = result_current_movie_row.getInt("movie_id");
 
 						// Determine the length of the native name using API.
+						native_name = native_name.replaceAll("\\s", "");
 						int native_name_len = API.getLength(native_name);
 				
 						// Determine if a record already exist in movies_numbers
@@ -338,6 +339,7 @@ public class MovieDriver {
 				ex.printStackTrace();
 		} // end catch
 	} // end updateLength method
+
 
 	public static ArrayList<String> getLetterBaseMovies(String input) {
 		Connection db_connection = null;
