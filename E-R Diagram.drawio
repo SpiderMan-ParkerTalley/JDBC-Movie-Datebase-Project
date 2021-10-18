@@ -36,7 +36,7 @@
     <mxCell id="zkfFHV4jXpPFQw0GAbJ--18" value="{ Language }" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;" parent="zkfFHV4jXpPFQw0GAbJ--17" vertex="1">
       <mxGeometry y="78" width="192" height="26" as="geometry" />
     </mxCell>
-    <mxCell id="j54C5g72h75EPI4u3S8y-2" value="Text" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;" vertex="1" parent="zkfFHV4jXpPFQw0GAbJ--17">
+    <mxCell id="j54C5g72h75EPI4u3S8y-2" value="keywords" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;" parent="zkfFHV4jXpPFQw0GAbJ--17" vertex="1">
       <mxGeometry y="104" width="192" height="30" as="geometry" />
     </mxCell>
     <mxCell id="zkfFHV4jXpPFQw0GAbJ--21" value="Genre" style="text;align=left;verticalAlign=top;spacingLeft=4;spacingRight=4;overflow=hidden;rotatable=0;points=[[0,0.5],[1,0.5]];portConstraint=eastwest;rounded=0;shadow=0;html=0;" parent="zkfFHV4jXpPFQw0GAbJ--17" vertex="1">
