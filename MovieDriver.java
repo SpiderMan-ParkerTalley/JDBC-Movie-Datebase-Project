@@ -1,6 +1,9 @@
+
+import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.Scanner; // Added for user input
 import java.util.ArrayList;
@@ -339,70 +342,104 @@ public class MovieDriver {
 				ex.printStackTrace();
 		} // end catch
 	} // end updateLength method
+	
 
-
-	public static ArrayList<String> getLetterBaseMovies(String input) {
-		Connection db_connection = null;
-		ArrayList<String> match_movies = new ArrayList<String>();
-		try {
-
-			// Step 1: Get the connection object for the database
-			String url = "jdbc:mysql://localhost/omdb";
-			String user = "root";
-			String password = "";
-			db_connection = DriverManager.getConnection(url, user, password);
-			System.out.println("Success: Connection established");
-
-			// Step 2: Create a statement object
-			Statement statement_object = db_connection.createStatement();
-
-			// Step 3: Execute SQL query
-
-			// Setting the quary string.
-			int movieLength = API.getLength(input);
-			String[] original = API.getLogicalChars(input);
-			String sql_query_str = "SELECT movies.native_name FROM movies, movie_numbers WHERE movie_numbers.length = " +
-			movieLength + " AND " + "movie_numbers.movie_id = movies.movie_id;";
-			ResultSet result_set = statement_object.executeQuery(sql_query_str);
-			
-			// Loop through query results
-			while(result_set.next()) {
-				int counter = 0;
+	public static String getLetterBaseMovies(String input) {
+		String output = "";
+		//output is the final output at the end of the method
+		String s1 = String.format("%-5s%-20s%-40s", "No.", "Input String", "Matches");
+		output += s1 + "\n";
+		//splitting our input(possible multiple queries) on commas
+		String[] inputString = input.split(",");
+		//looping through all input movies
+		for(int k=0; k<inputString.length; k++) {
+			String s2 = String.format("%-5d%-20s", k+1, inputString[k]);
+			output += s2;
+			Connection db_connection = null;
+			//list for matched movies of input movie to be returned at the end of the method
+			ArrayList<String> match_movies = new ArrayList<String>();
+			try {
+				// Step 1: Get the connection object for the database
+				String url = "jdbc:mysql://localhost/omdb";
+				String user = "root";
+				String password = "";
+				db_connection = DriverManager.getConnection(url, user, password);
+				System.out.println("Success: Connection established");
+	
+				// Step 2: Create a statement object
+				Statement statement_object = db_connection.createStatement();
+	
+				// Step 3: Execute SQL query
+	
+				// Setting the quary string.
+				String[] original = API.getBaseChars(inputString[k]);
+				int movieLength = original.length;
 				
-				//Grabbing current loop index's native name and splitting it using API to get its logical chars as an array.
-				String[] compare = API.getLogicalChars(result_set.getString("native_name"));
 				
-				//If the word is not equal to the initial input that we are comparing to, then we enter if condition
-				if(input.equals(result_set.getString("native_name")) == false) {
+				String sql_query_str = "SELECT movies.native_name FROM movies, movie_numbers WHERE movie_numbers.length = " +
+						movieLength + " AND " + "movie_numbers.movie_id = movies.movie_id;";
+				ResultSet result_set = statement_object.executeQuery(sql_query_str);
+				
+				// Loop through query results
+				System.out.println("Checking movies... Please wait...");
+				while(result_set.next()) {
+					int counter = 0;
+					
+					//Grabbing current loop index's native name and splitting it using API to get its logical chars as an array.
+					String compare_string = result_set.getString("native_name");
+					String native_name = compare_string.replaceAll("\\s", "");
+					String[] compare = API.getBaseChars(native_name);
+					
 					//Sorting both the input chars and compared native name chars to see if they are anagrams of each other
 					Arrays.sort(original);
 					Arrays.sort(compare);
 					//Check each char index by index to see if they match
 					for(int i = 0; i < compare.length; i++) {
 						//if they match at each index, increment counter by 1
-						if(compare[i].equals(original[i])) {
+						if(compare[i].equalsIgnoreCase(original[i]) == false) {
+							break;
+						}
+						else if(compare[i].equalsIgnoreCase(original[i])) {
 							counter += 1;
 						}
 					}
-					
+						
 					//If the counter is equal to the length of the original word (input), then we will add compared movie native name to return arraylist
 					if(counter == movieLength) {
 						match_movies.add(result_set.getString("native_name"));
-						System.out.println("Movie match found!");
+						System.out.println("Movie match found!\n\n");
 						}
 					}
+				//if matched movies is 0, then output ---
+				if(match_movies.size() == 0) {
+					String s3 = String.format("%-40s", "---");
+					output += s3;
+				}else {
+					//adding to output 1 to n-1 with a comma
+					String matches = "";
+					for(int j=0; j<match_movies.size()-1; j++) {
+						matches += match_movies.get(j) + ", ";
+					}
+					matches += match_movies.get(match_movies.size() - 1) + "\n";
+					//adding last movie without comma
+					String s4 = String.format("%-40s", matches);
+					output += s4;
 				}
-		}
+			}
+		
 			
 		catch (Exception ex) {
 			ex.printStackTrace();
-		 
-		} // end catch
+		}
+		}
+		return output;
+		// end catch
 		// returns an array containing all matching* movies
-		return match_movies;
 	} // getLetterBaseMovies method
 	
-	public static void main(String[] args) {
+	
+	
+	public static void main(String[] args) throws UnsupportedEncodingException, SQLException {
 		/*
 		// Insert Method
 		// Determine what the user wants the attributes to be.
@@ -443,8 +480,13 @@ public class MovieDriver {
 		MovieDriver.dbDelete(movie_id);
 		*/
 
-		// MovieDriver.updateLength();
-		System.out.println(MovieDriver.getLetterBaseMovies("కనకతార"));
+		//MovieDriver.updateLength();
+		
+		System.out.println("Enter movie(s) to find matches in database OMBD: ");
+		String input = scanner.nextLine();
+		System.out.print(MovieDriver.getLetterBaseMovies(input));
+
+		
 
 	}
 } // end class
