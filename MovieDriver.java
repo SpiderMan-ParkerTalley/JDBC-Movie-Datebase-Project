@@ -69,20 +69,23 @@ public class MovieDriver {
 	 * a SQL statement that inserts the information requested into a new row in the movies table.
 	 * Finally, the method prints a statement saying whether the movie was entered succesfully or not.
 	 */
-	public static void dbInsert(String native_name, String english_name, int year_made) { // add arguments for native_name, english_name, year_made
-		Connection db_connection = null;
-		try {
-
+	public static void dbInsert(String native_name, String english_name, int year_made) { // add arguments for
+		// native_name,
+		// english_name, year_made
+		
+			Connection db_connection = null;
+			try {
+			
 			// Step 1: Get the connection object for the database
 			String url = "jdbc:mysql://localhost/omdb";
 			String user = "root";
 			String password = "";
 			db_connection = DriverManager.getConnection(url, user, password);
 			System.out.println("Success: Connection established");
-
+			
 			// Step 2: Create a statement object
 			Statement statement_object = db_connection.createStatement();
-
+			
 			// Step 3: Execute SQL query
 			// Set the query string you want to run on the database
 			// If this query is not running in PhpMyAdmin, then it will not run her
@@ -91,28 +94,54 @@ public class MovieDriver {
 			while (year_made < 0 || year_made > 2021) {
 				System.out.println("Your year is not a valid entry, please enter another year");
 				year_made = scanner.nextInt();
-			}
+				}
 			
 			// Setting the quary string.
 			String sql_query_str = "INSERT INTO `movies` (`movie_id`, `native_name`, `english_name`, `year_made`) VALUES ("
-					+ "NULL, \'" + native_name + "\', \'" + english_name + 
-					"\', \'" + year_made + "\')";
+			+ "NULL, \'" + native_name + "\', \'" + english_name + "\', \'" + year_made + "\')";
 			int update_result_set = statement_object.executeUpdate(sql_query_str);
 			
+			
+			
 			// Determines if the row/object was successfully updated.
-			if(update_result_set != 0 ) {
+			if (update_result_set != 0) {
 				System.out.println("Success: The movie was successfully added.");
-			}
-			else {
+			} else {
 				System.out.println("Failure: The mvoie was not added.");
 			}
-		} // end try
-
-		catch (Exception ex) {
+			
+			//new query to find recent insert's movie_id
+			String query_str = "SELECT movies.movie_id FROM movies WHERE movies.native_name = \'" + native_name + "\';";
+			ResultSet result_set = statement_object.executeQuery(query_str);
+			
+			
+			int movieID = -1;
+			int success = 0;
+			//if movie_id is in the result_set, we will grab the movie_id
+			if(result_set.next()) {
+				movieID = result_set.getInt("movie_id");
+			}
+			//if we found the movie_id, then we will insert into movie_numbers with the movie_id and native_name length
+			if(movieID != -1) {
+				String sql_query_str1 = "INSERT INTO `movie_numbers` (`movie_id`, `running_time`, `length`, `strength`) "
+						+ "VALUES (\'" + movieID + "\', NULL, \'" + native_name.length() + "\', NULL);";
+				success = statement_object.executeUpdate(sql_query_str1);
+			}
+			
+			//determines success of insert into movie_numbers
+			if (success != 0) {
+				System.out.println("Success: The movie length was successfully added.");
+			} else {
+				System.out.println("Failure: The mvoie was not added.");
+			}
+			
+			} // end try
+			
+			catch (Exception ex) {
 			ex.printStackTrace();
-		} // end catch
-
-	} // end dbInsert method
+			} // end catch
+			
+			} // end dbInsert method
 
 	/**
 	 * Used to update an existing row within the database.
