@@ -467,6 +467,27 @@ public class MovieDriver {
 	} // getLetterBaseMovies method
 	
 	
+	public static void reading_cvs_file() {
+		// Must be full file path, or the file will not open.
+		File file = new File("Put file path here.");
+		try(Scanner rowScanner = new Scanner(file)) {
+			while(rowScanner.hasNextLine()) {
+				// Stores the values of the current line an array for indexing.
+				String[] values = rowScanner.nextLine().split(",");
+				// Print all the values in the array.
+				for(int index = 0; index < values.length; index++) {
+					System.out.print(values[index] + ", ");
+				}	
+				// Starting new line after each line is complete.
+				System.out.println();
+			}
+		}
+		// Catch if the file path given does not lead to file that can be opened.
+		catch(Exception FileNotFoundException) {
+			System.out.println("Unable to open file.");
+		}
+	}
+	
 	
 	public static void main(String[] args) throws UnsupportedEncodingException, SQLException {
 		/*
