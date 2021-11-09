@@ -488,6 +488,111 @@ public class MovieDriver {
 		}
 	}
 	
+	// Insert(s) or update(s) the base character(s) column for every movie in the database.
+	public static void updateBaseCharacters() {
+		Connection db_connection = null;
+		try {
+
+			// Step 1: Get the connection object for the database
+			String url = "jdbc:mysql://localhost/omdb";
+			String user = "root";
+			String password = "";
+			db_connection = DriverManager.getConnection(url, user, password);
+			System.out.println("Success: Connection established");
+
+			// Step 2: Create a statement object
+			Statement statement_object = db_connection.createStatement();
+
+			// Step 3: Execute SQL query
+			// Set the query string you want to run on the database
+			// If this query is not running in PhpMyAdmin, then it will not run here
+			String sql_query_str = "SELECT MAX(movie_id) FROM movies";
+			ResultSet result_set = statement_object.executeQuery(sql_query_str);
+			if(result_set.next()) {
+			int number_of_movies = result_set.getInt("MAX(movie_id)");
+			
+				// Loop through every possible movie.
+				for(int id = 1; id <= number_of_movies; id++) {
+					// Determine if a movie has 'id' (from for loop) is used for a movie_id.
+					String sql_query_check = "SELECT COUNT(1) FROM movies WHERE movie_id = \'" + id + "\';";
+					ResultSet check_result = statement_object.executeQuery(sql_query_check);
+					check_result.next();
+					int result_option = check_result.getInt("COUNT(1)");
+				
+					// No movie has 'id' (from for loop), skip to the next 'id'.
+					if(result_option == 0) {
+						continue;
+					}
+				
+					// A movie has 'id' (from for loop).
+					else {
+						String sql_query = "SELECT * FROM movies WHERE movie_id = \'" + id + "\';";
+						ResultSet result_current_movie_row = statement_object.executeQuery(sql_query);
+						result_current_movie_row.next();
+						String native_name = result_current_movie_row.getString("native_name");
+						int movie_id = result_current_movie_row.getInt("movie_id");
+
+						// Determine the length of the native name using API.
+						native_name = native_name.replaceAll("\\s", "");
+						String[] logical_chars = API.getLogicalChars(native_name);
+						int native_name_len = API.getLength(native_name);
+						String base_chars = "";
+
+						// Creates string that contains base character with ',' in between.
+						for(int index = 0; index <= native_name_len - 2; index++) {
+							base_chars = base_chars + logical_chars[index] + ",";
+						}
+						base_chars = base_chars + logical_chars[native_name_len  - 1];
+				
+						// Determine if a record already exist in movies_numbers
+						String check_movies_numbers = "SELECT COUNT(1) FROM movie_numbers WHERE movie_id = \'" + movie_id + "\';";
+						ResultSet result_movies_numbers = statement_object.executeQuery(check_movies_numbers);
+						// Stores value of whether the movie_id exist in movie_numbers.
+						result_movies_numbers.next();
+						int result_int_movie_number = result_movies_numbers.getInt("COUNT(1)");
+
+					
+						// The movie_id does NOT exist in movie_numbers.
+						if(result_int_movie_number == 0) {
+							// Inserts the new row.
+							String insert_statement = "INSERT INTO `movie_numbers` (`movie_id`, `running_time`, `length`, `strength`, `weight`, `budget`, `box_office`, `base_chars`) VALUES (\'"
+								+ id + "\', NULL , NULL, NULL, NULL, NULL, NULL, \'" + base_chars + "\');";
+							int update_result_set = statement_object.executeUpdate(insert_statement);
+			
+							// Determines if the row/object was successfully updated.
+							if(update_result_set != 0 ) {
+							System.out.println("Success: The movie_id " + id + " was successfully ADDED to movie_numbers.");
+								}
+							else {
+								System.out.println("Failure: The movie was not added.");
+							}
+						}
+					
+						// The movie_id exist in movie_numbers.
+						else if (result_int_movie_number == 1) {
+							// Updates the value.
+							String sql_query_update = "UPDATE movie_numbers SET base_chars = \'" + 
+							base_chars + "\' WHERE movie_id = \'" + movie_id + "\';";
+							int update_result_set = statement_object.executeUpdate(sql_query_update);
+							
+							// Determines if the row/object was successfully updated.
+							if(update_result_set != 0 ) {
+								System.out.println("Success: The movie_id " + id + " was successfully UPDATED to movie_numbers.");
+							}
+							else {
+								System.out.println("Failure: The movie was not added.");
+							}
+						}
+					}
+				}
+			} 
+		} // end try
+
+		catch (Exception ex) {
+			ex.printStackTrace();
+		} // end catch
+	} // end updateLength method
+	
 	
 	public static void main(String[] args) throws UnsupportedEncodingException, SQLException {
 		/*
