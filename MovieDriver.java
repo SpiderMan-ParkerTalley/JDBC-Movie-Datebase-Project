@@ -534,6 +534,7 @@ public class MovieDriver {
 
 						// Determine the length of the native name using API.
 						native_name = native_name.replaceAll("\\s", "");
+						native_name = native_name.replaceAll("'", "");
 						String[] logical_chars = API.getLogicalChars(native_name);
 						int native_name_len = API.getLength(native_name);
 						String base_chars = "";
