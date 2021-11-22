@@ -622,17 +622,9 @@ public class MovieDriver {
 				output += input_str[i] + " --> ";
 				String base_chars = "";
 				
-				//query to find the movie that we are comparing to get its base characters
-				String sql_query_str = "SELECT DISTINCT movie_numbers.base_chars FROM movie_numbers, movies WHERE " +
-						"movies.native_name = \'" + input_str[i] + "\' AND movies.movie_id = movie_numbers.movie_id;";
-				ResultSet result_set = statement_object.executeQuery(sql_query_str);
-				//it a movie exists in our database, we can grab the base_chars from the result set
-				if(result_set.next()) {
-					base_chars = result_set.getString("base_chars");
-				//if the movie does not exist, we must get the base_chars from the API instead of depending on the database
-				}else {
-					input_str[i].replaceAll("\\s", "");
-					String[] base_char_array = API.getBaseChars(input_str[i]);
+
+				input_str[i].replaceAll("\\s", "");
+				String[] base_char_array = API.getBaseChars(input_str[i]);
 				int base_length = base_char_array.length;
 				
 				//query to find all movies with same length and same base characters
