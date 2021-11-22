@@ -718,7 +718,7 @@ public class MovieDriver {
 				
 				//split the base_chars by commas
 				String[] split_base = base_char.get(i).split(",");
-			    	outputString += "[" + movie_ids.get(i) + "] " + movies.get(i) + ", ";
+			    	outputString += "[" + movie_ids.get(i) + "] ";
 			    	
 				//creating an arraylist of movie_matches
 			   	ArrayList<String> movie_matches = new ArrayList<String>();
