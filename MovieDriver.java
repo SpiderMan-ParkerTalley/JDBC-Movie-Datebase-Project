@@ -182,56 +182,90 @@ public class MovieDriver {
 			// Collect the movie id of the movie that will be updated.
 
 			// Determine what the user this wants to update.
-			
-			
-			// Update native_name; option 1
-			if(determination == 1) {
-				// Determine what value the user would like to replace with.
 
-				// Setting the quary string.
-				String sql_query_str = "UPDATE movies SET native_name = \'" + 
-					update_value + "\' WHERE movie_id = \'" + movie_id + "\';";
-				int update_result_set = statement_object.executeUpdate(sql_query_str);
-				
-				// Determines if the row/object was successfully updated.
-				if(update_result_set != 0 ) {
-					System.out.println("The line was successfully updated.");
+			// Update native_name; option 1
+			if (determination == 1) {
+
+				// Get the base characters and store them into array String[]
+				String updated_value = update_value.replaceAll("\\s", "");
+				String[] api_chars = API.getBaseChars(updated_value);
+
+				// This is the length of the user input as nat_name_length
+				int nat_name_length = api_chars.length;
+				String base_chars = "";
+
+				// Creates string that contains base character with ',' in between.
+				for (int index = 0; index <= nat_name_length - 2; index++) {
+					base_chars = base_chars + api_chars[index] + ",";
 				}
-				else {
+				base_chars = base_chars + api_chars[nat_name_length - 1];
+
+				// Update movies table with user input
+				String sql_query_str = "UPDATE movies SET native_name = \'" + update_value + "\' WHERE movie_id = \'"
+						+ movie_id + "\';";
+				int update_result_set = statement_object.executeUpdate(sql_query_str);
+
+				//////////// ITERATION 6B (UPDATE LENGTH)///////////////
+
+				String query_two = "UPDATE movie_numbers SET length = \'" + nat_name_length + "\' WHERE movie_id = \'"
+						+ movie_id + "\';";
+				int update_result_set2 = statement_object.executeUpdate(query_two);
+
+				/////// Iteration 9 (UPDATE BASE CHARACTERS)//////////////
+				String query_three = "UPDATE movie_numbers SET base_chars = \'" + base_chars + "\' WHERE movie_id = \'"
+						+ movie_id + "\';";
+				int update_result_set3 = statement_object.executeUpdate(query_three);
+
+				// Determines if the row/object was successfully updated.
+				if (update_result_set != 0) {
+					System.out.println("The line was successfully updated.");
+				} else {
 					System.out.println("The line was not updated because the line entered was not valid.");
 				}
+
+				// Determines if the length was updated
+				if (update_result_set2 != 0) {
+					System.out.println("The length was successfully updated.");
+				} else {
+					System.out.println("The length was not updated.");
+				}
+
+				if (update_result_set3 != 0) {
+					System.out.println("The base characters were successfully updated.");
+				} else {
+					System.out.println("The base characters were not updated.");
+				}
 			}
+
 			// Update english_name; option 2
-			else if(determination == 2) {
+			else if (determination == 2) {
 				// Determine what value the user would like to replace with.
 
 				// Setting the quary string.
-				String sql_query_str = "UPDATE movies SET english_name = \'" + 
-					update_value + "\' WHERE movie_id = \'" + movie_id + "\';";
+				String sql_query_str = "UPDATE movies SET english_name = \'" + update_value + "\' WHERE movie_id = \'"
+						+ movie_id + "\';";
 				int update_result_set = statement_object.executeUpdate(sql_query_str);
-				
+
 				// Determines if the row/object was successfully updated.
-				if(update_result_set != 0 ) {
+				if (update_result_set != 0) {
 					System.out.println("The line was successfully updated.");
-				}
-				else {
+				} else {
 					System.out.println("The line was not updated because the line entered was not valid.");
 				}
 			}
 			// Update year_made; option 3
-			else if(determination == 3) {
+			else if (determination == 3) {
 				int int_update_value = Integer.parseInt(update_value);
 
 				// Setting the quary string.
-				String sql_query_str = "UPDATE movies SET year_made = \'" + 
-				int_update_value + "\' WHERE movie_id = \'" + movie_id + "\';";
+				String sql_query_str = "UPDATE movies SET year_made = \'" + int_update_value + "\' WHERE movie_id = \'"
+						+ movie_id + "\';";
 				int update_result_set = statement_object.executeUpdate(sql_query_str);
-				
+
 				// Determines if the row/object was sucessfully updated.
-				if(update_result_set != 0 ) {
+				if (update_result_set != 0) {
 					System.out.println("The line was successfully updated.");
-				}
-				else {
+				} else {
 					System.out.println("The line was not updated because the line entered was not valid.");
 				}
 			}
@@ -239,14 +273,13 @@ public class MovieDriver {
 			else {
 				System.out.println("Invalid option.");
 			}
-			
 
 		} // end try
 
 		catch (Exception ex) {
 			ex.printStackTrace();
 		} // end catch
-	} // end dbUpdate method
+	}
 
 	/**
 	 * Used to delete an existing row within the database.
