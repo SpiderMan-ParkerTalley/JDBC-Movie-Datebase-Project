@@ -641,6 +641,69 @@ public class MovieDriver {
 	
 	
 	//Method that searches for movies with similar base characters and length using new collumn in database that stores base_chars as an array
+	public static void baseCharGame_2(String[] input_str) {
+		Connection db_connection = null;
+		String output = "";
+        try{
+			// Step 1: Get the connection object for the database
+			String url = "jdbc:mysql://localhost/omdb";
+			String user = "root";
+			String password = "";
+			db_connection = DriverManager.getConnection(url, user, password);
+			System.out.println("Success: Connection established");
+
+			// Step 2: Create a statement object
+			Statement statement_object = db_connection.createStatement();
+
+			// Step 3: Execute SQL query
+			// Set the query string you want to run on the database
+			// If this query is not running in PhpMyAdmin, then it will not run here
+			
+			for(int i=0; i<input_str.length; i++) {
+				output += input_str[i] + " --> ";
+				String base_chars = "";
+				
+				input_str[i].replaceAll("\\s", "");
+				String[] base_char_array = API.getBaseChars(input_str[i]);
+				int base_length = base_char_array.length;
+				
+				String base_query_str = "SELECT movies.native_name FROM movies, movie_numbers WHERE ";
+				
+				for(int k=0; k<base_char_array.length; k++) {
+					base_query_str += "movie_numbers.base_chars LIKE \'%" + base_char_array[k] + "%\' AND ";
+				}
+				
+				base_query_str += " movie_numbers.length = \'" + base_length +"\' AND "
+						+ "movies.movie_id = movie_numbers.movie_id";
+				
+				ResultSet base_result_set = statement_object.executeQuery(base_query_str);
+				ArrayList<String> matches = new ArrayList<String>();
+				
+				while(base_result_set.next()) {
+					matches.add(base_result_set.getString("native_name"));
+				}
+				if(matches.size() == 0) {
+					output += "No matching movies\n";
+				}
+				else{
+					//adding to output 1 to n-1 with a comma
+					for(int j=0; j<matches.size()-1; j++) {
+						output += matches.get(j) + ", ";
+					}
+					output += matches.get(matches.size() - 1) + "\n";
+				}
+			}
+			
+        
+        }
+		catch (Exception ex) {
+			ex.printStackTrace();
+		}
+        System.out.println(output);
+	}
+	
+	//method that writes to a file called "all_movies.txt" a report of all movies in our database sorted by movie_id and
+	//lists the movies that are the same length and contain the same base characters
 	public static void baseCharReport() {
 
 		Connection db_connection = null;
@@ -709,105 +772,6 @@ public class MovieDriver {
 			}
 			printWriter.flush();
 			printWriter.close();
-			System.out.println("Movie report finished successfully.");
-        }
-			
-		catch (Exception ex) {
-			ex.printStackTrace();
-		}
-	}
-	
-	//method that writes to a file called "all_movies.txt" a report of all movies in our database sorted by movie_id and
-	//lists the movies that are the same length and contain the same base characters
-	public static void baseCharReport() {
-
-		Connection db_connection = null;
-		//output string to write to file
-		String outputString = "";
-       		try{
-			// Step 1: Get the connection object for the database
-			String url = "jdbc:mysql://localhost/omdb";
-			String user = "root";
-			String password = "";
-			db_connection = DriverManager.getConnection(url, user, password);
-			System.out.println("Success: Connection established");
-			
-			//initializing new printwriter in UTF-8 so telugu will show
-		    	PrintWriter printWriter = new PrintWriter("all_movies.txt", "UTF-8");
-		    
-		    
-
-			// Step 2: Create a statement object
-			Statement statement_object = db_connection.createStatement();
-			
-			// Step 3: Execute SQL query
-			// Set the query string you want to run on the database
-			// If this query is not running in PhpMyAdmin, then it will not run here
-			
-			//three ArrayLists to keep track of movies, movie_ids, and their base_chars, organized by index
-			ArrayList<String> movies = new ArrayList<String>();
-			ArrayList<Integer> movie_ids = new ArrayList<Integer>();
-			ArrayList<String> base_char = new ArrayList<String>();
-			
-			//query to find distinct movie_id, native_name, and base_chars in our entire database.
-			String sql_query_str = "SELECT DISTINCT movies.movie_id, movies.native_name, movie_numbers.base_chars FROM movies, movie_numbers " 
-					+ "WHERE movie_numbers.movie_id = movies.movie_id;";
-			ResultSet result_set = statement_object.executeQuery(sql_query_str);
-			
-			//while results are there, add the native_name, movie_id, and base_chars to our arrayList
-			while(result_set.next()) {
-				movies.add(result_set.getString("native_name").replaceAll("'", "\\\\'"));
-				movie_ids.add(result_set.getInt("movie_id"));
-				base_char.add(result_set.getString("base_chars").replaceAll("'", "\\\\'"));
-			}
-			
-			//loop through every movie in our arrayList
-			for(int i=0; i<movies.size(); i++) {
-				
-				//split the base_chars by commas
-				String[] split_base = base_char.get(i).split(",");
-			    	outputString += "[" + movie_ids.get(i) + "] ";
-			    	
-				//creating an arraylist of movie_matches
-			   	ArrayList<String> movie_matches = new ArrayList<String>();
-			    	
-				
-				//creating our query string to find movies with same length as compared movie and same base_chars
-				String base_query_str = "SELECT movies.native_name FROM movies, movie_numbers WHERE ";
-				
-				for(int k=0; k<split_base.length; k++) {
-					base_query_str += "movie_numbers.base_chars LIKE \'%" + split_base[k] + "%\' AND ";
-				}
-				
-				base_query_str += " movie_numbers.length = \'" + split_base.length +"\' AND "
-						+ "movies.movie_id = movie_numbers.movie_id";
-				
-				//execute query
-				ResultSet base_result_set = statement_object.executeQuery(base_query_str);
-				
-				//while our result_set has results, add the native_names to our movie_match array
-				while(base_result_set.next()) {
-					movie_matches.add(base_result_set.getString("native_name"));
-				}
-				//if our array's size is 0, no movie matches
-				if(movie_matches.size() == 0) {
-					outputString += "No matching movies\n";
-				}
-				//else if our array size > 0 then add the movies to our output to write to file with commas separating them, minus the last movie
-				else{
-					//adding to output 1 to n-1 with a comma
-					for(int j=0; j<movie_matches.size()-1; j++) {
-						outputString += movie_matches.get(j) + ", ";
-					}
-					outputString += movie_matches.get(movie_matches.size() - 1) + "\n";
-				}
-				//write to the file
-				printWriter.print(outputString);
-			}
-			//flush and close our printWriter
-			printWriter.flush();
-			printWriter.close();
-			//let our user know movie report has finished successfully and is now ready to open
 			System.out.println("Movie report finished successfully.");
         }
 			
