@@ -461,6 +461,7 @@ public class MovieDriver {
 					//Grabbing current loop index's native name and splitting it using API to get its logical chars as an array.
 					String compare_string = result_set.getString("native_name");
 					String native_name = compare_string.replaceAll("\\s", "");
+					native_name = native_name.replaceAll("'", "");
 					String[] compare = API.getBaseChars(native_name);
 					
 					//Sorting both the input chars and compared native name chars to see if they are anagrams of each other
