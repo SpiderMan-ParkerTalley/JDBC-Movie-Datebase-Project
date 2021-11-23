@@ -534,6 +534,220 @@ public class MovieDriver {
 		}
 	}
 	
+	public static void process_mpr_data() {
+		Connection db_connection = null;
+		try {
+			// Step 1: Get the connection object for the database
+			String url = "jdbc:mysql://localhost/omdb";
+			String user = "root";
+			String password = "";
+			db_connection = DriverManager.getConnection(url, user, password);
+			System.out.println("Success: Connection established");
+
+			// Step 2: Create a statement object
+			Statement statement_object = db_connection.createStatement();
+
+			// Step 3: Execute SQL query
+			// Set the query string you want to run on the database
+			// If this query is not running in PhpMyAdmin, then it will not run here
+
+			int id_index = 1;
+			// getting total number of ids to check for
+			String count_query_str = "SELECT COUNT(*) FROM mpr_test_data;";
+			ResultSet count_result_set = statement_object.executeQuery(count_query_str);
+			count_result_set.next();
+			int total_id = count_result_set.getInt("COUNT(*)");
+
+			// total_id is 138 attributes (rows)
+
+			// while we still have ids to check for
+			while (id_index <= total_id) {
+
+				// query to grab data at that id
+				String mpr_query_str = "SELECT * FROM mpr_test_data WHERE mpr_test_data.id = \'" + id_index + "\';";
+				ResultSet mpr_result_set = statement_object.executeQuery(mpr_query_str);
+
+				if (mpr_result_set.next()) {
+
+					// grabbing all information from the table to add or ignore if we already have
+					// it in
+					// respective tables
+					int id = mpr_result_set.getInt("id");
+					String name = mpr_result_set.getString("native_name").replaceAll("'", "\\\\'");
+					int year = mpr_result_set.getInt("year_made");
+					String stage_name = mpr_result_set.getString("stage_name").replaceAll("'", "\\\\'");
+					String ppl_role = mpr_result_set.getString("role").replaceAll("'", "\\\\'");
+					String screen_name = mpr_result_set.getString("screen_name").replaceAll("'", "\\\\'");
+					String execute = mpr_result_set.getString("execution_status").replaceAll("'", "\\\\'");
+
+					// two arrays to keep track of what we updated or ignored so we can update the
+					// execution_status
+					// at the end of the method
+					ArrayList<String> ignored = new ArrayList<String>();
+					ArrayList<String> updated = new ArrayList<String>();
+					String execution = "";
+
+					// keeping track of movie_id and people_id for movie_people table
+					int mov_id = 0;
+					int ppl_id = 0;
+
+					// if the execution status says that the data already exists, skip everything
+					// for that id
+					if (execute.equalsIgnoreCase("M, P, R ignored;\\nData already exists") == false) {
+						// query to see if the movie with that native_name and year_made already exists
+						String mov_query_str = "SELECT movies.movie_id, movies.native_name, movies.year_made FROM movies "
+								+ "WHERE movies.native_name = \'" + name + "\' AND movies.year_made = \'" + year
+								+ "\';";
+						ResultSet mov_result_set = statement_object.executeQuery(mov_query_str);
+
+						// if multiple movies exist for those qualifiers, then we cannot update anything
+						// execusion states that no unique movie can be identified
+						if (mov_result_set.getRow() > 1) {
+							execution = "M, P, R ignored;\nUnique type cannot be identified";
+							// else, no movies exist yet, then we insert the movie into the movies table
+							// with
+							// correct values and auto-incremented movie_id
+						} else {
+							if (mov_result_set.next() == false) {
+								String movie_query = "INSERT INTO `movies` (`movie_id`, `native_name`, `english_name`, `year_made`) VALUES ("
+										+ "NULL, \'" + name + "\', \'" + name + "\' , \'" + year + "\')";
+								int update_result_set = statement_object.executeUpdate(movie_query);
+
+								if (update_result_set != 0) {
+									System.out.println("Success: The movie was successfully added from CSV.");
+								} else {
+									System.out.println("Failure: The movie was not added.");
+								}
+								// if movie was updated, then we will add "M" into updated array
+								updated.add("M");
+							} else {
+								// if movie was not updated, then we add "M" into ignored array
+								ignored.add("M");
+							}
+
+							// a means to get the movie_id to correctly correlate the ids in movie_people
+							String mov_query_str2 = "SELECT movies.movie_id, movies.native_name, movies.year_made FROM movies "
+									+ "WHERE movies.native_name = \'" + name + "\' AND movies.year_made = \'" + year
+									+ "\';"; // <=====what does this do?
+							ResultSet mov_result_set2 = statement_object.executeQuery(mov_query_str2);
+							while (mov_result_set2.next()) {
+								mov_id = mov_result_set2.getInt("movie_id");
+							}
+						}
+
+						// query to determine if the person with this particular stage name exists
+						String ppl_query_str = "SELECT people.people_id, people.stage_name FROM people WHERE people.stage_name = \'"
+								+ stage_name + "\';";
+						ResultSet ppl_result_set = statement_object.executeQuery(ppl_query_str);
+
+						// if multiple people exist for those qualifiers, then we cannot update anything
+						// execusion states that no unique person can be identified
+						if (ppl_result_set.getRow() > 1) {
+							execution = "M, P, R ignored;\nUnique type cannot be identified";
+							// else, no such person exists yet, then we insert the person into the people
+							// table with
+							// correct values and auto-incremented people_id
+						} else {
+							if (ppl_result_set.next() == false) {
+								String ppl_query = "INSERT INTO `people` (`people_id`, `stage_name`, `first_name`, `middle_name`, "
+										+ "`last_name`, `gender`, `image_name`)VALUES (NULL, \'" + stage_name
+										+ "\', \'TBD\', \'TBD\', " + "\'TBD\', \'TBD\', \'TBD\');";
+								int update_result_set = statement_object.executeUpdate(ppl_query);
+
+								if (update_result_set != 0) {
+									System.out.println("Success: The person was successfully added from CSV.");
+								} else {
+									System.out.println("Failure: The person was not added.");
+								}
+								// if updated, we add "P" to updated array
+								updated.add("P");
+							} else {
+								// if if condition is ignored, we add "P" to ignored array
+								ignored.add("P");
+
+							}
+
+							// means to get the people_id to correctly correspond the people_id in
+							// movie_people
+							String ppl_query_str2 = "SELECT people.people_id, people.stage_name FROM people WHERE people.stage_name = \'"
+									+ stage_name + "\';";
+							ResultSet ppl_result_set2 = statement_object.executeQuery(ppl_query_str2);
+							while (ppl_result_set2.next()) {
+								ppl_id = ppl_result_set2.getInt("people_id");
+							}
+						}
+
+						// query to see if a correct values exist in movie_people for the newly added
+						// people and movies
+						String role_query_str = "SELECT movie_people.movie_id, movie_people.people_id, movie_people.role, "
+								+ "movie_people.screen_name FROM movie_people WHERE movie_people.movie_id = \'" + mov_id
+								+ "\' AND " + "movie_people.people_id = \'" + ppl_id + "\';";
+						ResultSet role_result_set = statement_object.executeQuery(role_query_str);
+
+						// if it does not exist yet, we will insert into movie_people with correct
+						// values
+						if (role_result_set.next() == false) {
+							String role_query = "INSERT INTO `movie_people` (`movie_id`, `people_id`, `role`, `screen_name`) "
+									+ "VALUES (\'" + mov_id + "\', \'" + ppl_id + "\', \'" + ppl_role + "\', \'"
+									+ screen_name + "\');";
+							int update_result_set = statement_object.executeUpdate(role_query);
+
+							if (update_result_set != 0) {
+								System.out.println("Success: The role was successfully added from CSV.");
+							} else {
+								System.out.println("Failure: The role was not added.");
+							}
+							// if we added to movie_people, we will add "R" to updated
+							updated.add("R");
+						} else {
+							// if if condition is skipped, we add "R" to ignored
+							ignored.add("R");
+						}
+
+						// determining execution status
+						// logic to list ignored
+						if (ignored.size() > 0 && ignored.size() < 3) {
+							for (int i = 0; i < ignored.size() - 1; i++) {
+								execution += ignored.get(i) + ", ";
+							}
+							execution += ignored.get(ignored.size() - 1) + " ignored; ";
+						}
+
+						// logic to list updated
+						if (updated.size() > 0) {
+							for (int i = 0; i < updated.size() - 1; i++) {
+								execution += updated.get(i) + ", ";
+							}
+							execution += updated.get(updated.size() - 1) + " updated ";
+						}
+
+						// if ignored = 3, we already have all the data and execution can show that
+						if (ignored.size() == 3) {
+							execution = "M, P, R ignored;\nData already exists";
+						}
+
+						// updating mpr_test_data with the new execution status
+						String execute_query_str = "UPDATE mpr_test_data SET execution_status = \'" + execution
+								+ "\' WHERE id = \'" + id + "\';";
+						int update_result_set = statement_object.executeUpdate(execute_query_str);
+
+						if (update_result_set != 0) {
+							System.out.println("Success: Execution status was updated successfully.");
+						} else {
+							System.out.println("Failure: Execution status was not updated.");
+						}
+					}
+				}
+				// incrementing index
+				id_index += 1;
+			}
+		}
+
+		catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}	
+	
 	// Insert(s) or update(s) the base character(s) column for every movie in the database.
 	public static void updateBaseCharacters() {
 		Connection db_connection = null;
