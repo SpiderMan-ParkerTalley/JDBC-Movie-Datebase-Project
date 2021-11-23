@@ -1,4 +1,5 @@
-
+import java.io.File;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -366,6 +367,7 @@ public class MovieDriver {
 
 						// Determine the length of the native name using API.
 						native_name = native_name.replaceAll("\\s", "");
+						native_name = native_name.replaceAll("'", "");
 						int native_name_len = API.getLength(native_name);
 				
 						// Determine if a record already exist in movies_numbers
@@ -553,7 +555,7 @@ public class MovieDriver {
 			String sql_query_str = "SELECT MAX(movie_id) FROM movies";
 			ResultSet result_set = statement_object.executeQuery(sql_query_str);
 			if(result_set.next()) {
-			int number_of_movies = result_set.getInt("MAX(movie_id)");
+				int number_of_movies = result_set.getInt("MAX(movie_id)");
 			
 				// Loop through every possible movie.
 				for(int id = 1; id <= number_of_movies; id++) {
@@ -580,6 +582,8 @@ public class MovieDriver {
 						native_name = native_name.replaceAll("\\s", "");
 						native_name = native_name.replaceAll("'", "");
 						String[] base_chars = API.getBaseChars(native_name);
+						Arrays.sort(base_chars);
+						int native_name_len = base_chars.length;
 						// System.out.println(base_chars);
 						String base_chars_string = "";
 
@@ -604,6 +608,7 @@ public class MovieDriver {
 							String insert_statement = "INSERT INTO `movie_numbers` (`movie_id`, `running_time`, `length`, `strength`, `weight`, `budget`, `box_office`, `base_chars`) VALUES (\'"
 								+ id + "\', NULL , NULL, NULL, NULL, NULL, NULL, \'" + base_chars_string + "\');";
 							int update_result_set = statement_object.executeUpdate(insert_statement);
+	
 			
 							// Determines if the row/object was successfully updated.
 							if(update_result_set != 0 ) {
@@ -612,6 +617,10 @@ public class MovieDriver {
 							else {
 								System.out.println("Failure: The movie was not added.");
 							}
+							String sql_query_update = "UPDATE movie_numbers SET length = \'" + 
+							native_name_len + "\' WHERE movie_id = \'" + movie_id + "\';";
+							update_result_set = statement_object.executeUpdate(sql_query_update);
+							
 						}
 					
 						// The movie_id exist in movie_numbers.
@@ -628,6 +637,9 @@ public class MovieDriver {
 							else {
 								System.out.println("Failure: The movie was not added.");
 							}
+							sql_query_update = "UPDATE movie_numbers SET length = \'" + 
+							native_name_len + "\' WHERE movie_id = \'" + movie_id + "\';";
+							update_result_set = statement_object.executeUpdate(sql_query_update);
 						}
 					}
 				}
@@ -661,7 +673,6 @@ public class MovieDriver {
 			
 			for(int i=0; i<input_str.length; i++) {
 				output += input_str[i] + " --> ";
-				String base_chars = "";
 				
 				input_str[i].replaceAll("\\s", "");
 				String[] base_char_array = API.getBaseChars(input_str[i]);
@@ -785,6 +796,8 @@ public class MovieDriver {
 	
 	
 	public static void main(String[] args) throws UnsupportedEncodingException, SQLException {
+		updateBaseCharacters();
+		
 		/*
 		// Insert Method
 		// Determine what the user wants the attributes to be.
