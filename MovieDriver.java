@@ -769,7 +769,7 @@ public class MovieDriver {
 			String sql_query_str = "SELECT MAX(movie_id) FROM movies";
 			ResultSet result_set = statement_object.executeQuery(sql_query_str);
 			if(result_set.next()) {
-				int number_of_movies = result_set.getInt("MAX(movie_id)");
+			int number_of_movies = result_set.getInt("MAX(movie_id)");
 			
 				// Loop through every possible movie.
 				for(int id = 1; id <= number_of_movies; id++) {
@@ -795,18 +795,15 @@ public class MovieDriver {
 						// Determine the length of the native name using API.
 						native_name = native_name.replaceAll("\\s", "");
 						native_name = native_name.replaceAll("'", "");
-						String[] base_chars = API.getBaseChars(native_name);
-						Arrays.sort(base_chars);
-						int native_name_len = base_chars.length;
-						// System.out.println(base_chars);
-						String base_chars_string = "";
+						String[] logical_chars = API.getBaseChars(native_name);
+						Arrays.sort(logical_chars);
+						String base_chars = "";
 
 						// Creates string that contains base character with ',' in between.
-						for(int index = 0; index <= base_chars.length - 2; index++) {
-							base_chars_string = base_chars_string + base_chars[index] + ",";
+						for(int index = 0; index < logical_chars.length - 1; index++) {
+							base_chars = base_chars + logical_chars[index] + ",";
 						}
-						base_chars_string = base_chars_string + base_chars[base_chars.length  - 1];
-						System.out.println(base_chars_string);
+						base_chars = base_chars + logical_chars[logical_chars.length  - 1];
 				
 						// Determine if a record already exist in movies_numbers
 						String check_movies_numbers = "SELECT COUNT(1) FROM movie_numbers WHERE movie_id = \'" + movie_id + "\';";
@@ -820,9 +817,8 @@ public class MovieDriver {
 						if(result_int_movie_number == 0) {
 							// Inserts the new row.
 							String insert_statement = "INSERT INTO `movie_numbers` (`movie_id`, `running_time`, `length`, `strength`, `weight`, `budget`, `box_office`, `base_chars`) VALUES (\'"
-								+ id + "\', NULL , NULL, NULL, NULL, NULL, NULL, \'" + base_chars_string + "\');";
+								+ id + "\', NULL , NULL, NULL, NULL, NULL, NULL, \'" + base_chars + "\');";
 							int update_result_set = statement_object.executeUpdate(insert_statement);
-	
 			
 							// Determines if the row/object was successfully updated.
 							if(update_result_set != 0 ) {
@@ -831,17 +827,13 @@ public class MovieDriver {
 							else {
 								System.out.println("Failure: The movie was not added.");
 							}
-							String sql_query_update = "UPDATE movie_numbers SET length = \'" + 
-							native_name_len + "\' WHERE movie_id = \'" + movie_id + "\';";
-							update_result_set = statement_object.executeUpdate(sql_query_update);
-							
 						}
 					
 						// The movie_id exist in movie_numbers.
 						else if (result_int_movie_number == 1) {
 							// Updates the value.
 							String sql_query_update = "UPDATE movie_numbers SET base_chars = \'" + 
-							base_chars_string + "\' WHERE movie_id = \'" + movie_id + "\';";
+							base_chars + "\' WHERE movie_id = \'" + movie_id + "\';";
 							int update_result_set = statement_object.executeUpdate(sql_query_update);
 							
 							// Determines if the row/object was successfully updated.
@@ -851,9 +843,6 @@ public class MovieDriver {
 							else {
 								System.out.println("Failure: The movie was not added.");
 							}
-							sql_query_update = "UPDATE movie_numbers SET length = \'" + 
-							native_name_len + "\' WHERE movie_id = \'" + movie_id + "\';";
-							update_result_set = statement_object.executeUpdate(sql_query_update);
 						}
 					}
 				}
@@ -861,12 +850,12 @@ public class MovieDriver {
 		} // end try
 
 		catch (Exception ex) {
-				ex.printStackTrace();
+			ex.printStackTrace();
 		} // end catch
 	} // end updateLength method
 	
 	
-	//Method that searches for movies with similar base characters and length using new collumn in database that stores base_chars as an array
+	
 	public static void baseCharGame_2(String[] input_str) {
 		Connection db_connection = null;
 		String output = "";
@@ -886,20 +875,20 @@ public class MovieDriver {
 			// If this query is not running in PhpMyAdmin, then it will not run here
 			
 			for(int i=0; i<input_str.length; i++) {
+				String query = "";
 				output += input_str[i] + " --> ";
 				
 				input_str[i].replaceAll("\\s", "");
 				String[] base_char_array = API.getBaseChars(input_str[i]);
-				int base_length = base_char_array.length;
+				Arrays.sort(base_char_array);
+				for(int k=0; k<base_char_array.length-1; k++)
+					query += base_char_array[k] + ",";
+				query += base_char_array[base_char_array.length-1];
 				
-				String base_query_str = "SELECT movies.native_name FROM movies, movie_numbers WHERE ";
+				System.out.println(query);
 				
-				for(int k=0; k<base_char_array.length; k++) {
-					base_query_str += "movie_numbers.base_chars LIKE \'%" + base_char_array[k] + "%\' AND ";
-				}
-				
-				base_query_str += " movie_numbers.length = \'" + base_length +"\' AND "
-						+ "movies.movie_id = movie_numbers.movie_id";
+				String base_query_str = "SELECT movies.native_name FROM movies, movie_numbers WHERE " +
+						"movie_numbers.base_chars = \'" + query + "\' AND movies.movie_id = movie_numbers.movie_id;";
 				
 				ResultSet base_result_set = statement_object.executeQuery(base_query_str);
 				ArrayList<String> matches = new ArrayList<String>();
@@ -927,8 +916,8 @@ public class MovieDriver {
         System.out.println(output);
 	}
 	
-	//method that writes to a file called "all_movies.txt" a report of all movies in our database sorted by movie_id and
-	//lists the movies that are the same length and contain the same base characters
+
+	
 	public static void baseCharReport() {
 
 		Connection db_connection = null;
@@ -960,24 +949,17 @@ public class MovieDriver {
 			while(result_set.next()) {
 				movies.add(result_set.getString("native_name").replaceAll("'", "\\\\'"));
 				movie_ids.add(result_set.getInt("movie_id"));
-				base_char.add(result_set.getString("base_chars").replaceAll("'", "\\\\'"));
+				base_char.add(result_set.getString("base_chars"));
 			}
 			
 			for(int i=0; i<movies.size(); i++) {
 				
-				String[] split_base = base_char.get(i).split(",");
 			    printWriter.print("[" + movie_ids.get(i) + "] ");
 			    
 			    ArrayList<String> movie_matches = new ArrayList<String>();
 			    
-				String base_query_str = "SELECT movies.native_name FROM movies, movie_numbers WHERE ";
-				
-				for(int k=0; k<split_base.length; k++) {
-					base_query_str += "movie_numbers.base_chars LIKE \'%" + split_base[k] + "%\' AND ";
-				}
-				
-				base_query_str += " movie_numbers.length = \'" + split_base.length +"\' AND "
-						+ "movies.movie_id = movie_numbers.movie_id";
+				String base_query_str = "SELECT movies.native_name FROM movies, movie_numbers WHERE " +
+						"movie_numbers.base_chars = \'" + base_char.get(i) + "\' AND movies.movie_id = movie_numbers.movie_id;";
 				
 				ResultSet base_result_set = statement_object.executeQuery(base_query_str);
 				
@@ -1010,8 +992,6 @@ public class MovieDriver {
 	
 	
 	public static void main(String[] args) throws UnsupportedEncodingException, SQLException {
-		updateBaseCharacters();
-		
 		/*
 		// Insert Method
 		// Determine what the user wants the attributes to be.
@@ -1064,13 +1044,13 @@ public class MovieDriver {
 		//updateBaseCharacters();
 		
 		
-		/*
+		
 		System.out.println("Enter movie(s) for base character game separated by commas and no spaces: ");
 		String movies = scanner.nextLine();
 		String[] split_movies = movies.split(",");
 		
 		baseCharGame_2(split_movies);
-		*/
+		
 	
 		
 		baseCharReport();
