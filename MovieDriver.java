@@ -91,6 +91,7 @@ public class MovieDriver {
 			// Take out white spaces and store the base characters into array String[]
 			String name = native_name.replaceAll("\\s", "");
 			String[] api_chars = API.getBaseChars(name);
+			Arrays.sort(api_chars);
 			int nat_name_length = api_chars.length; // use this for the native_name length
 
 			String base_chars = "";
@@ -190,7 +191,7 @@ public class MovieDriver {
 				// Get the base characters and store them into array String[]
 				String updated_value = update_value.replaceAll("\\s", "");
 				String[] api_chars = API.getBaseChars(updated_value);
-
+				Arrays.sort(api_chars);
 				// This is the length of the user input as nat_name_length
 				int nat_name_length = api_chars.length;
 				String base_chars = "";
