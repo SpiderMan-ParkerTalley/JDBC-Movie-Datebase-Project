@@ -551,6 +551,15 @@ public class MovieDriver {
 			// Step 3: Execute SQL query
 			// Set the query string you want to run on the database
 			// If this query is not running in PhpMyAdmin, then it will not run here
+			
+			String people_id_query = "SELECT max(people_id) from people;";
+			ResultSet people_result_set = statement_object.executeQuery(people_id_query);
+			int people_id = 1;
+			while(people_result_set.next()) {
+				people_id += people_result_set.getInt("max(people_id)");
+			}
+			
+			System.out.println(people_id);
 
 			int id_index = 1;
 			// getting total number of ids to check for
@@ -651,12 +660,13 @@ public class MovieDriver {
 						} else {
 							if (ppl_result_set.next() == false) {
 								String ppl_query = "INSERT INTO `people` (`people_id`, `stage_name`, `first_name`, `middle_name`, "
-										+ "`last_name`, `gender`, `image_name`)VALUES (NULL, \'" + stage_name
+										+ "`last_name`, `gender`, `image_name`)VALUES (\'" + people_id + "\', \'" + stage_name
 										+ "\', \'TBD\', \'TBD\', " + "\'TBD\', \'TBD\', \'TBD\');";
 								int update_result_set = statement_object.executeUpdate(ppl_query);
 
 								if (update_result_set != 0) {
 									System.out.println("Success: The person was successfully added from CSV.");
+									people_id += 1;
 								} else {
 									System.out.println("Failure: The person was not added.");
 								}
@@ -747,7 +757,7 @@ public class MovieDriver {
 		catch (Exception ex) {
 			ex.printStackTrace();
 		}
-	}	
+	}		
 	
 	// Insert(s) or update(s) the base character(s) column for every movie in the database.
 	public static void updateBaseCharacters() {
